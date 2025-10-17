@@ -1,3 +1,6 @@
+
+
+
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -22,10 +25,14 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # --- Модели данных API ---
-class TicketRequest(BaseModel): text: str
-class TicketResponse(BaseModel): answer: str
+class TicketRequest(BaseModel):
+    text: str
+
+class TicketResponse(BaseModel):
+    answer: str
 
 # --- Инициализация Агентов ---
+# Этот код выполняется один раз при запуске сервера
 retriever = RetrieverAgent()
 generator = GeneratorAgent()
 analyzer = AnalyzerAgent()
@@ -38,8 +45,12 @@ print("\n--- СЕРВЕР ГОТОВ К РАБОТЕ ---\n")
 
 # --- Логика Оркестратора ---
 def process_ticket_logic(user_query: str) -> str:
-    # MVP-цепочка: Используем только retriever и generator
-    # Остальные агенты вызываются, но их результат (заглушка) не используется
+    """
+    Основная логика обработки запроса. Вызывает агентов в нужной последовательности.
+    """
+    # MVP-цепочка: Используем только retriever и generator.
+    # Остальные агенты вызываются, но их результат (заглушка) не используется,
+    # чтобы показать полную архитектуру.
     
     classification = classifier.classify(user_query)
     analysis = analyzer.analyze(user_query)
@@ -62,9 +73,12 @@ def process_ticket_logic(user_query: str) -> str:
 
 # --- Эндпоинты ---
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request): return templates.TemplateResponse("index.html", {"request": request})
+async def read_root(request: Request):
+    """Отдает главную HTML-страницу."""
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/api/process_ticket", response_model=TicketResponse)
 async def process_ticket_api(ticket: TicketRequest):
+    """Принимает JSON-запрос от UI, обрабатывает его и возвращает JSON-ответ."""
     answer_text = process_ticket_logic(ticket.text)
     return TicketResponse(answer=answer_text)
