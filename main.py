@@ -1,6 +1,3 @@
-
-
-
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -25,11 +22,12 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # --- Модели данных API ---
-class TicketRequest(BaseModel):
-    text: str
+class ChatRequest(BaseModel):
+    message: str
 
-class TicketResponse(BaseModel):
-    answer: str
+class ChatResponse(BaseModel):
+    response: str
+    action: dict | None = None
 
 # --- Инициализация Агентов ---
 # Этот код выполняется один раз при запуске сервера
@@ -77,8 +75,9 @@ async def read_root(request: Request):
     """Отдает главную HTML-страницу."""
     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.post("/api/process_ticket", response_model=TicketResponse)
-async def process_ticket_api(ticket: TicketRequest):
+@app.post("/api/chat/", response_model=ChatResponse)
+async def process_chat_api(request: ChatRequest):
     """Принимает JSON-запрос от UI, обрабатывает его и возвращает JSON-ответ."""
-    answer_text = process_ticket_logic(ticket.text)
-    return TicketResponse(answer=answer_text)
+    answer_text = process_ticket_logic(request.message)
+    # TODO: Добавить логику для возврата 'action', если это необходимо
+    return ChatResponse(response=answer_text)

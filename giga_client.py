@@ -1,68 +1,50 @@
 # giga_client.py
 
 import os
-from dotenv import load_dotenv
-from llama_cpp import Llama
-from huggingface_hub import hf_hub_download
+from vllm import LLM, SamplingParams
 import logging
 
+# Настраиваем логирование
 logging.basicConfig(level=logging.INFO)
-load_dotenv()
 
-class GigaChatClient:
+class VllmClient:
     def __init__(self):
-        repo_id = "ai-sage/GigaChat-20B-A3B-instruct-GGUF"
-        filename = "ggml-model-q4_k_m.gguf"
-        models_dir = "models"
-        model_path = os.path.join(models_dir, filename)
+        # --- ИСПОЛЬЗУЕМ Qwen2.5-VL-7B-Instruct-AWQ ---
+        model_id = "Qwen/Qwen2.5-VL-7B-Instruct-AWQ"
 
-        if not os.path.exists(model_path):
-            logging.warning(f"Файл модели не найден: {model_path}")
-            logging.info(f"Начинается скачивание модели '{filename}'...")
-            os.makedirs(models_dir, exist_ok=True)
-            try:
-                hf_hub_download(
-                    repo_id=repo_id,
-                    filename=filename,
-                    local_dir=models_dir,
-                    local_dir_use_symlinks=False
-                )
-                logging.info(f"Модель успешно скачана в '{models_dir}'.")
-            except Exception as e:
-                logging.error(f"Не удалось скачать модель: {e}")
-                raise
-        else:
-            logging.info(f"Файл модели найден: {model_path}")
-
-        logging.info("Инициализация модели LlamaCPP...")
+        logging.info(f"Инициализация модели VLLM: {model_id}...")
         try:
-            self.model = Llama(
-                model_path=model_path,
-                n_ctx=4096,
-                n_gpu_layers=-1,
-                n_threads=8,
-                verbose=False
+            # Инициализация модели vLLM с параметрами из вашего примера
+            self.llm = LLM(
+                model=model_id,
+                # --- Включаем квантизацию AWQ ---
+                quantization="awq",
+                dtype="float16",
+                gpu_memory_utilization=0.90,
+                max_model_len=4096,
+                trust_remote_code=True,
             )
-            logging.info("Модель LlamaCPP успешно инициализирована.")
+            
+            # Настройки для генерации. <|endoftext|> - основной стоп-токен для Qwen
+            self.sampling_params = SamplingParams(
+                temperature=0.7, 
+                max_tokens=1024, 
+                stop=["<|endoftext|>"]
+            )
+            self.tokenizer = self.llm.get_tokenizer()
+            logging.info("Модель VLLM успешно инициализирована.")
         except Exception as e:
-            logging.error(f"Ошибка при загрузке модели LlamaCPP: {e}")
+            logging.error(f"ОШИБКА: Не удалось инициализировать модель VLLM. {e}", exc_info=True)
             raise
 
     def send_prompt(self, full_prompt: str) -> str:
         """
-        Принимает ПОЛНЫЙ, уже отформатированный промпт и отправляет в модель.
+        Отправляет готовый промпт в vLLM и возвращает ответ.
         """
         try:
-            # Используем create_completion, так как передаем уже готовый к употреблению промпт
-            output = self.model(
-                prompt=full_prompt,
-                max_tokens=1024,
-                stop=["<|im_end|>"],
-                temperature=0.7,
-                echo=False # Не повторять промпт в ответе
-            )
-            answer = output['choices'][0]['text']
+            outputs = self.llm.generate([full_prompt], self.sampling_params)
+            answer = outputs[0].outputs[0].text
             return answer.strip()
         except Exception as e:
-            logging.error(f"Ошибка при генерации ответа моделью: {e}")
+            logging.error(f"Ошибка при генерации ответа моделью vLLM: {e}")
             return "К сожалению, произошла ошибка при обработке вашего запроса моделью."
