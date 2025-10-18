@@ -2,7 +2,8 @@ fastapi
 uvicorn[standard]
 python-dotenv
 jinja2
-llama-cpp-python
-sentence-transformers
-faiss-cpu
 huggingface_hub
+vllm
+pandas
+openpyxl
+Pillow
