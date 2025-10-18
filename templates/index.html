@@ -4,61 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Чат поддержки - Росатом</title>
-    <!-- Подключаем файл со стилями -->
     <link rel="stylesheet" href="/static/style.css">
-    <!-- Подключаем шрифты от Google -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
     <div class="chat-container">
-        <!-- Заголовок чата -->
         <header class="chat-header">
-            <img src="https://www.rosatom.ru/local/tpl/img/site_rosatom_ru.png" alt="Логотип Росатома" class="logo">
+            <img src="https://www.rosatom.ru/local/tpl/img/site_rosatom_ru.png" alt="Rosatom Logo" class="logo">
             <h1>Чат поддержки</h1>
         </header>
-
-        <!-- Область для сообщений -->
         <div class="chat-messages" id="chat-messages">
-            <!-- Приветственное сообщение от бота -->
+            <!-- Messages will be appended here by JavaScript -->
             <div class="message bot-message">
-                <p>Здравствуйте! Я ваш виртуальный ассистент. Опишите вашу проблему. Вы также можете прикрепить скриншот.</p>
+                <p>Здравствуйте! Я ваш виртуальный ассистент. Чем могу помочь?</p>
             </div>
         </div>
-
-        <!-- Область для ввода -->
         <div class="chat-input-area">
-            <!-- Этот блок будет появляться для подтверждения действий (пока не используется) -->
             <div id="action-confirmation" class="action-confirmation" style="display: none;">
                 <p id="action-text"></p>
                 <button id="confirm-button">Подтвердить</button>
                 <button id="cancel-button">Отклонить</button>
             </div>
-
-            <!-- Изображение-превью перед отправкой -->
-            <div id="image-preview-container" class="image-preview-container" style="display: none;">
-                <img id="image-preview" src="" alt="Image preview"/>
-                <button id="remove-image-button" class="remove-image-button">&times;</button>
-            </div>
-
-            <!-- Основная форма ввода -->
             <div class="input-wrapper">
-                <!-- Скрытый инпут для выбора файла -->
-                <input type="file" id="image-upload" accept="image/*" style="display: none;">
-                
-                <!-- Кнопка для прикрепления файла, которая нажимает на скрытый инпут -->
-                <button id="attach-button" title="Прикрепить изображение">📎</button>
-                
-                <!-- Поле для ввода текста -->
                 <input type="text" id="user-input" placeholder="Введите ваш вопрос...">
-                
-                <!-- Кнопка отправки -->
                 <button id="send-button">Отправить</button>
+                <input type="file" id="file-input" accept="image/*,application/pdf" style="display: none;">
+                <button id="attach-button">📎</button>
             </div>
         </div>
     </div>
-
-    <!-- Подключаем JavaScript-логику -->
     <script src="/static/script.js"></script>
 </body>
 </html>

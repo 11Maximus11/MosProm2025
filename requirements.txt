@@ -2,8 +2,19 @@ fastapi
 uvicorn[standard]
 python-dotenv
 jinja2
+python-multipart
+
+# --- GigaChat & AI ---
+sentence-transformers
+
+# --- Vector DB ---
+chromadb
+
+# --- OCR & Images ---
+Pillow
+
+# --- Existing ---
 huggingface_hub
 vllm
 pandas
 openpyxl
-Pillow #

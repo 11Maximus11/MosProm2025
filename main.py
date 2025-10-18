@@ -14,6 +14,7 @@ from agents.planner import PlannerAgent
 from agents.executor import ExecutorAgent
 from agents.verifier import VerifierAgent
 from agents.personalizer import PersonalizerAgent
+from agents.orchestrator import OrchestratorAgent # Импортируем нового оркестратора
 
 # --- Настройка ---
 setup_logging()
@@ -30,43 +31,17 @@ class ChatResponse(BaseModel):
     action: dict | None = None
 
 # --- Инициализация Агентов ---
-# Этот код выполняется один раз при запуске сервера
-retriever = RetrieverAgent()
-generator = GeneratorAgent()
-analyzer = AnalyzerAgent()
-classifier = ClassifierAgent()
-planner = PlannerAgent()
-executor = ExecutorAgent()
-verifier = VerifierAgent()
-personalizer = PersonalizerAgent()
+# Создаем одного агента-оркестратора, который будет управлять остальными
+orchestrator = OrchestratorAgent()
 print("\n--- СЕРВЕР ГОТОВ К РАБОТЕ ---\n")
 
 # --- Логика Оркестратора ---
-def process_ticket_logic(user_query: str) -> str:
+async def process_ticket_logic(user_query: str) -> str:
     """
     Основная логика обработки запроса. Вызывает агентов в нужной последовательности.
     """
-    # MVP-цепочка: Используем только retriever и generator.
-    # Остальные агенты вызываются, но их результат (заглушка) не используется,
-    # чтобы показать полную архитектуру.
-    
-    classification = classifier.classify(user_query)
-    analysis = analyzer.analyze(user_query)
-    
-    # 1. Поиск релевантной информации (реальный шаг MVP)
-    context = retriever.retrieve_documents(analysis['full_text'])
-    
-    plan = planner.plan_actions(analysis['full_text'], context)
-    execution_report = executor.execute_plan(plan)
-
-    # 2. Генерация ответа (реальный шаг MVP)
-    draft_answer = generator.generate_final_answer(user_query, context, execution_report)
-    
-    verification = verifier.verify(user_query, draft_answer)
-    if verification['decision'] != 'approve':
-        return "Ответ системы не прошел внутреннюю проверку. Обращение передано оператору."
-
-    final_answer = personalizer.personalize(draft_answer, {})
+    # Теперь вся логика инкапсулирована в оркестраторе
+    final_answer = await orchestrator.process_query(user_query)
     return final_answer
 
 # --- Эндпоинты ---
@@ -75,9 +50,19 @@ async def read_root(request: Request):
     """Отдает главную HTML-страницу."""
     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.post("/api/chat/", response_model=ChatResponse)
-async def process_chat_api(request: ChatRequest):
+@app.post("/api/chat/")
+async def process_chat_api(request: Request):
     """Принимает JSON-запрос от UI, обрабатывает его и возвращает JSON-ответ."""
-    answer_text = process_ticket_logic(request.message)
-    # TODO: Добавить логику для возврата 'action', если это необходимо
-    return ChatResponse(response=answer_text)
+    try:
+        # Получаем данные напрямую из запроса
+        data = await request.json()
+        message = data.get("message", "")
+        
+        # Обрабатываем сообщение
+        answer_text = await process_ticket_logic(message)
+        
+        # Возвращаем ответ
+        return {"response": answer_text, "action": None}
+    except Exception as e:
+        print(f"Error processing request: {e}")
+        return {"response": f"Произошла ошибка при обработке запроса: {str(e)}", "action": None}

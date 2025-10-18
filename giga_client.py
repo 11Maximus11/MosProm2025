@@ -1,6 +1,11 @@
 # giga_client.py
 
 import os
+import multiprocessing
+# Set multiprocessing start method to 'spawn' before importing vLLM
+# This fixes the "We must use the spawn multiprocessing start method" warning
+multiprocessing.set_start_method('spawn', force=True)
+
 from vllm import LLM, SamplingParams
 import logging
 

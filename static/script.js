@@ -2,6 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatMessages = document.getElementById('chat-messages');
     const userInput = document.getElementById('user-input');
     const sendButton = document.getElementById('send-button');
+    const attachButton = document.getElementById('attach-button');
+    const fileInput = document.getElementById('file-input');
     const actionConfirmation = document.getElementById('action-confirmation');
     const actionText = document.getElementById('action-text');
     const confirmButton = document.getElementById('confirm-button');
@@ -14,6 +16,19 @@ document.addEventListener('DOMContentLoaded', () => {
             sendMessage();
         }
     });
+
+    attachButton.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            // Пока просто выводим имя файла, позже будем его отправлять
+            appendMessage(`Прикреплен файл: ${file.name}`, 'system');
+        }
+    });
+
     confirmButton.addEventListener('click', handleActionConfirm);
     cancelButton.addEventListener('click', handleActionCancel);
 
@@ -21,13 +36,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function sendMessage() {
         const messageText = userInput.value.trim();
-        if (messageText === '') return;
+        const file = fileInput.files[0];
+
+        if (messageText === '' && !file) return;
 
         appendMessage(messageText, 'user');
         userInput.value = '';
         
-        // Send message to backend
-        sendToBackend(messageText);
+        // Отправляем на бэкенд
+        sendToBackend(messageText, file);
+
+        // Сбрасываем инпут файла после отправки
+        fileInput.value = '';
     }
 
     function appendMessage(text, sender) {
@@ -42,15 +62,21 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollToBottom();
     }
 
-    async function sendToBackend(userMessage) {
+    async function sendToBackend(userMessage, file = null) {
         try {
+            // Отправляем JSON вместо FormData для соответствия с API
             const response = await fetch('/api/chat/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ message: userMessage }),
+                body: JSON.stringify({ "message": userMessage }),
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const data = await response.json();
             appendMessage(data.response, 'bot');
             if (data.action) {
