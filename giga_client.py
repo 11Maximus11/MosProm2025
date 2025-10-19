@@ -10,7 +10,7 @@ from vllm import LLM, SamplingParams
 import logging
 
 # Настраиваем логирование
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 class VllmClient:
     def __init__(self):

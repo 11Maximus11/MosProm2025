@@ -5,7 +5,7 @@ from utils.prompts import PERSONALIZER_PROMPT
 class PersonalizerAgent:
     """Агент для персонализации ответов."""
     
-    def personalize(self, answer: str, user_profile: dict) -> str:
+    async def personalize_async(self, answer: str, user_profile: dict) -> str:
         """
         Персонализирует ответ на основе данных пользователя.
         """
@@ -23,7 +23,7 @@ class PersonalizerAgent:
         )
         
         # Вызов LLM для персонализации ответа
-        personalized_answer = get_llm_response(prompt, is_json=False)
+        personalized_answer = await get_llm_response(prompt, is_json=False)
         
         # Возвращаем персонализированный ответ или исходный, если персонализация не удалась
         return personalized_answer or answer

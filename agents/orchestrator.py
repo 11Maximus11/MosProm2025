@@ -7,7 +7,6 @@ from agents.planner import PlannerAgent
 from agents.executor import ExecutorAgent
 from agents.verifier import VerifierAgent
 from agents.personalizer import PersonalizerAgent
-import logging
 
 class OrchestratorAgent:
     """
@@ -16,30 +15,14 @@ class OrchestratorAgent:
     """
     def __init__(self):
         # Инициализируем всех дочерних агентов один раз
-        try:
-            self.retriever = RetrieverAgent()
-        except Exception: logging.ERROR(Exception)
-        try:
-            self.generator = GeneratorAgent()
-        except Exception: logging.ERROR(Exception)
-        try:
-            self.analyzer = AnalyzerAgent()
-        except Exception: logging.ERROR(Exception)
-        try:
-            self.classifier = ClassifierAgent()
-        except Exception: logging.ERROR(Exception)
-        try:
-            self.planner = PlannerAgent()
-        except Exception: logging.ERROR(Exception)
-        try:
-            self.executor = ExecutorAgent()
-        except Exception: logging.ERROR(Exception)
-        try:
-            self.verifier = VerifierAgent() 
-        except Exception: logging.ERROR(Exception)
-        try:
-            self.personalizer = PersonalizerAgent()
-        except Exception: logging.ERROR(Exception)
+        self.retriever = RetrieverAgent()
+        self.generator = GeneratorAgent()
+        self.analyzer = AnalyzerAgent()
+        self.classifier = ClassifierAgent()
+        self.planner = PlannerAgent()
+        self.executor = ExecutorAgent()
+        self.verifier = VerifierAgent()
+        self.personalizer = PersonalizerAgent()
 
     async def process_query(self, user_query: str) -> str:
         """
@@ -63,10 +46,12 @@ class OrchestratorAgent:
         draft_answer = await self.generator.generate_final_answer_async(user_query, context, execution_report)
 
         # Шаг 5: Проверка и персонализация
-        # Эти шаги также можно было бы сделать асинхронными, если бы они делали I/O вызовы
-        verification = self.verifier.verify(user_query, draft_answer)
+        # Эти шаги выполняем асинхронно
+        verification = await self.verifier.verify_async(user_query, draft_answer)
         if verification['decision'] != 'approve':
             return "Ответ системы не прошел внутреннюю проверку. Обращение передано оператору."
 
-        final_answer = self.personalizer.personalize(draft_answer, {})
+        # Передаем пустой словарь в качестве профиля пользователя
+        user_profile = {}
+        final_answer = await self.personalizer.personalize_async(draft_answer, user_profile)
         return final_answer

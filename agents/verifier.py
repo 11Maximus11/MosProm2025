@@ -4,7 +4,7 @@ from utils.prompts import VERIFIER_PROMPT
 class VerifierAgent:
     """Агент для проверки ответов."""
     
-    def verify(self, query: str, answer: str) -> dict:
+    async def verify_async(self, query: str, answer: str) -> dict:
         """
         Проверяет ответ на соответствие запросу и политикам.
         """
@@ -14,8 +14,8 @@ class VerifierAgent:
             answer=answer
         )
         
-        # Синхронный вызов LLM для проверки ответа
-        verification = get_llm_response(prompt, is_json=True)
+        # Асинхронный вызов LLM для проверки ответа
+        verification = await get_llm_response(prompt, is_json=True)
         
         # Возвращаем результат или значение по умолчанию
         if not verification:

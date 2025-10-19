@@ -18,14 +18,14 @@ class PlannerAgent:
         # Преобразуем AVAILABLE_TOOLS в JSON-строку для промпта
         tools_json = json.dumps([{
             "tool": name,
-            "description": details["description"],
-            "params": details["params"]
+            "description": details.get("description", ""),
+            "params": details.get("params", {})
         } for name, details in AVAILABLE_TOOLS.items()], ensure_ascii=False, indent=2)
 
         prompt = PLANNER_PROMPT.format(
-            user_query=query,
-            context=context_text,
-            tools_json=tools_json
+            tools=tools_json,
+            query=query,
+            context=context_text
         )
         
         # Вызов LLM для генерации плана
