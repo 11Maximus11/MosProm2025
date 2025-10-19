@@ -1,0 +1,62 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+database/
+# Virtual environments
+venv/
+env/
+.venv/
+.env
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs and outputs
+*.log
+logs/
+output/
+results/
+
+# Model files and large data (CRITICAL for LLM projects)
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.h5
+*.onnx
+models/
+checkpoints/
+*.gguf
+*.awq
+
+# Hugging Face cache
+~/.cache/huggingface/
+.cache/
+.huggingface/
+
+# vLLM / PyTorch specific
+*.dill
+*.pkl
+
+# OS generated
+Thumbs.db
+ehthumbs.db
+
+# Local config (secrets, paths)
+config.local.yaml
+.env
+*.env
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# CUDA / compilation artifacts
+*.so
+build/
+dist/
+*.egg-info/
